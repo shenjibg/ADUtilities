@@ -15,6 +15,21 @@
     .PARAMETER OutputLogDir
     A string for the log directory
 
+    .PARAMETER emailCred
+    A pscredential if there is a email to be sent.
+
+    .PARAMETER smtpServer
+    The SMTP Address.
+
+    .PARAMETER smtpPort
+    The SMTP Port.
+
+    .PARAMETER emailFrom
+    Originating email source.
+
+    .PARAMETER emailTo
+    Email destination.
+
     
 #>
 
@@ -23,7 +38,12 @@ param (
     [Parameter()]
     [string] $User1 = '',
     [string] $User2 = '',
-    [string] $OutputLogDir = $env:TEMP
+    [string] $OutputLogDir = $env:TEMP,
+    [pscredential] $emailCred = $null,
+    [string] $smtpServer = 'smtp.office365.com',
+    [Int32] $smtpPort = 587,
+    [string] $emailFrom = '',
+    [string] $emailTo = ''
 )
 
 Import-Module ActiveDirectory
@@ -83,3 +103,12 @@ IF(-not(Test-Path -Path $logFileName -PathType Leaf))
 }
 
 Add-Content -Path $logFileName -Value $logResults.ToString()
+
+#EnterCredentialCode
+
+IF(-not($emailCred -eq $null ))
+{
+    $emailSubj = 'AD unlock {0}' -f($dateTimeStr)
+    Send-MailMessage -SmtpServer $smtpServer -Port $smtpPort -UseSsl -From $emailFrom -To $emailTo -Subject $emailSubj -Body $logResults.ToString() -Credential $emailCred
+
+}
